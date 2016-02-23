@@ -1,0 +1,7 @@
+struct BufferPool {
+    
+}
+
+struct Buffer {
+    
+}
