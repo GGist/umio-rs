@@ -1,7 +1,0 @@
-struct BufferPool {
-    
-}
-
-struct Buffer {
-    
-}
