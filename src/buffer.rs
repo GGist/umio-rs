@@ -1,24 +1,23 @@
+use std::io::{Write, Read, Cursor, Result};
+
 pub struct BufferPool {
     // Use Stack For Temporal Locality
-    buffers: TreiberStack<Vec<u8>>
+    buffers:     Vec<Buffer>,
+    buffer_size: usize
 }
 
 impl BufferPool {
-    pub fn new(buffer_len: usize, num_buffers: usize) -> BufferPool {
-        let mut buffers = TreiberStack::new();
+    pub fn new(buffer_size: usize) -> BufferPool {
+        let buffers = Vec::new();
         
-        for _ in 0..num_buffers {
-            buffers.push(Buffer::new(buffer_len));
-        }
-        
-        BufferPool{ buffers: buffers }
+        BufferPool{ buffers: buffers, buffer_size: buffer_size }
     }
     
-    pub fn pop(&self) -> Buffer {
-        self.buffers.pop()
+    pub fn pop(&mut self) -> Buffer {
+        self.buffers.pop().unwrap_or(Buffer::new(self.buffer_size))
     }
     
-    pub fn push(&self, mut buffer: Buffer) {
+    pub fn push(&mut self, mut buffer: Buffer) {
         buffer.reset_position();
         
         self.buffers.push(buffer);
@@ -46,11 +45,12 @@ impl Buffer {
 
 impl Write for Buffer {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        let mut cursor = Cursor::new(&mut self.buffer);
+        let mut cursor = Cursor::new(&mut self.buffer[..]);
         cursor.set_position(self.w_position);
         
+        let assign_w_position = &mut self.w_position;
         cursor.write(buf).map(|num_bytes| {
-            self.w_position += (num_bytes as u64);
+            *assign_w_position += num_bytes as u64;
             num_bytes
         })
     }
@@ -65,8 +65,9 @@ impl Read for Buffer {
         let mut cursor = Cursor::new(&mut self.buffer);
         cursor.set_position(self.r_position);
         
+        let assign_r_position = &mut self.r_position;
         cursor.read(buf).map(|num_bytes| {
-            self.r_position += (num_bytes as u64);
+            *assign_r_position += num_bytes as u64;
             num_bytes
         })
     }
