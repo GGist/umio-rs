@@ -1,7 +1,7 @@
 use std::io::{Result};
 use std::net::{SocketAddr, SocketAddrV4, Ipv4Addr};
 
-use mio::{EventLoop, Sender};
+use mio::{EventLoop, Sender, Token, EventSet, PollOpt};
 use mio::udp::{UdpSocket};
 
 use buffer::{BufferPool};
@@ -62,6 +62,9 @@ impl<'a, D: Dispatcher> ELoop<'a, D> {
     pub fn run(&'a mut self, dispatcher: &'a mut D) -> Result<()> {
         let udp_socket = try!(UdpSocket::v4());
         udp_socket.bind(&self.socket_addr);
+        
+        // TODO: Refactor
+        self.event_loop.register(&udp_socket, Token(2), EventSet::readable(), PollOpt::oneshot());
         
         let mut dispatch_handler = DispatchHandler::new(udp_socket,
             self.buffer_size, dispatcher);
