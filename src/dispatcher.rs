@@ -5,37 +5,38 @@ use mio::{Handler, EventLoop, Token, EventSet, PollOpt};
 use mio::udp::{UdpSocket};
 
 use buffer::{BufferPool, Buffer};
-use provider::{Provider};
+use provider::{self, Provider};
 use route::{RouteInfo};
 
 pub trait Dispatcher: Sized {
     type Timeout;
     type Message: Send;
     
-    fn incoming<'a, 'b>(&mut self, provider: Provider<'a, 'b, Self>, message: &[u8]) { }
+    fn incoming<'a>(&mut self, provider: Provider<'a, Self>, message: &[u8], addr: SocketAddr) { }
     
-    fn notify<'a, 'b>(&mut self, provider: Provider<'a, 'b, Self>, msg: Self::Message) { }
+    fn notify<'a>(&mut self, provider: Provider<'a, Self>, msg: Self::Message) { }
     
-    fn timeout<'a, 'b>(&mut self, provider: Provider<'a, 'b, Self>, timeout: Self::Timeout) { }
+    fn timeout<'a>(&mut self, provider: Provider<'a, Self>, timeout: Self::Timeout) { }
 }
 
 //----------------------------------------------------------------------------//
 
 const UDP_SOCKET_TOKEN: Token = Token(2);
 
-pub struct DispatchHandler<'a, D: Dispatcher + 'a> {
-    dispatch:    &'a mut D,
+pub struct DispatchHandler<D: Dispatcher> {
+    dispatch:    D,
     out_queue:   VecDeque<(Buffer, SocketAddr)>,
     udp_socket:  UdpSocket,
     buffer_pool: BufferPool,
     current_set: EventSet
 }
 
-impl<'a, D: Dispatcher> DispatchHandler<'a, D> {
-    pub fn new(udp_socket: UdpSocket, buffer_size: usize, dispatch: &'a mut D)
-        -> DispatchHandler<'a, D> {
+impl<D: Dispatcher> DispatchHandler<D> {
+    pub fn new(udp_socket: UdpSocket, buffer_size: usize, dispatch: D, event_loop: &mut EventLoop<DispatchHandler<D>>) -> DispatchHandler<D> {
         let buffer_pool = BufferPool::new(buffer_size);
         let out_queue = VecDeque::new();
+        
+        event_loop.register(&udp_socket, UDP_SOCKET_TOKEN, EventSet::readable(), PollOpt::level()).unwrap();
         
         DispatchHandler{ dispatch: dispatch, out_queue: out_queue, udp_socket: udp_socket,
             buffer_pool: buffer_pool, current_set: EventSet::readable() }
@@ -50,13 +51,6 @@ impl<'a, D: Dispatcher> DispatchHandler<'a, D> {
             },
             None => ()
         };
-        
-        // Update current set if more messages are pending
-        self.current_set = if self.out_queue.is_empty() {
-            EventSet::readable()
-        } else {
-            EventSet::readable() | EventSet::writable()
-        };
     }
     
     pub fn handle_read(&mut self) -> Option<(Buffer, SocketAddr)> {
@@ -69,12 +63,10 @@ impl<'a, D: Dispatcher> DispatchHandler<'a, D> {
         } else {
             None
         }
-        
-        // No need to update current set (always readable)
     }
 }
 
-impl<'a, D: Dispatcher + 'a> Handler for DispatchHandler<'a, D> {
+impl<D: Dispatcher> Handler for DispatchHandler<D> {
     type Timeout = D::Timeout;
     type Message = D::Message;
     
@@ -93,35 +85,34 @@ impl<'a, D: Dispatcher + 'a> Handler for DispatchHandler<'a, D> {
             } else { return };
             
             {
-                let provider = Provider::new(&mut self.buffer_pool, &mut self.out_queue, event_loop);
+                let provider = provider::new(&mut self.buffer_pool, &mut self.out_queue, event_loop);
                 
-                self.dispatch.incoming(provider, buffer.as_ref());
+                self.dispatch.incoming(provider, buffer.as_ref(), addr);
             }
             
             self.buffer_pool.push(buffer);
         }
-        
-        event_loop.reregister(&self.udp_socket, UDP_SOCKET_TOKEN, self.current_set, PollOpt::oneshot()).unwrap();
     }
     
     fn notify(&mut self, event_loop: &mut EventLoop<Self>, msg: Self::Message) {
-        //let provider = Provider::new(&mut self.buffer_pool, &mut self.out_queue, event_loop);
+        let provider = provider::new(&mut self.buffer_pool, &mut self.out_queue, event_loop);
     
-        //self.dispatch.notify(provider, msg);
+        self.dispatch.notify(provider, msg);
     }
     
     fn timeout(&mut self, event_loop: &mut EventLoop<Self>, timeout: Self::Timeout) {
-        //let provider = Provider::new(&mut self.buffer_pool, &mut self.out_queue, event_loop);
+        let provider = provider::new(&mut self.buffer_pool, &mut self.out_queue, event_loop);
         
-        //self.dispatch.timeout(provider, timeout);
+        self.dispatch.timeout(provider, timeout);
     }
     
     fn tick(&mut self, event_loop: &mut EventLoop<Self>) {
-        // Triggers when the first message is put in the queue (from a notify probably)
-        if !self.out_queue.is_empty() && !self.current_set.is_writable() {
-            let new_set = self.current_set | EventSet::writable();
-            
-            event_loop.reregister(&self.udp_socket, Token(2), new_set, PollOpt::oneshot()).unwrap();
-        }
+        self.current_set = if !self.out_queue.is_empty() {
+            EventSet::readable() | EventSet::writable()
+        } else {
+            EventSet::readable()
+        };
+        
+        event_loop.reregister(&self.udp_socket, UDP_SOCKET_TOKEN, self.current_set, PollOpt::level()).unwrap();
     }
 }

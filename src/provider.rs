@@ -6,28 +6,30 @@ use mio::{EventLoop, Sender, TimerResult, Timeout};
 use buffer::{BufferPool, Buffer};
 use dispatcher::{Dispatcher, DispatchHandler};
 
-pub struct Provider<'a, 'b: 'a, D: Dispatcher + 'b> {
+pub struct Provider<'a, D: Dispatcher + 'a> {
     buffer_pool: &'a mut BufferPool,
     out_queue:   &'a mut VecDeque<(Buffer, SocketAddr)>,
-    event_loop:  &'a mut EventLoop<DispatchHandler<'b, D>>
+    event_loop:  &'a mut EventLoop<DispatchHandler<D>>
 }
 
-impl<'a, 'b: 'a, D: Dispatcher + 'b> Provider<'a, 'b, D> {
-    pub fn new(buffer_pool: &'a mut BufferPool, out_queue: &'a mut VecDeque<(Buffer, SocketAddr)>,
-        event_loop: &'a mut EventLoop<DispatchHandler<'b, D>>) -> Provider<'a, 'b, D> {
-        Provider{ buffer_pool: buffer_pool, out_queue: out_queue, event_loop: event_loop }   
-    }
+pub fn new<'a, D: Dispatcher>(buffer_pool: &'a mut BufferPool, out_queue: &'a mut VecDeque<(Buffer, SocketAddr)>,
+    event_loop: &'a mut EventLoop<DispatchHandler<D>>) -> Provider<'a, D> {
+    Provider{ buffer_pool: buffer_pool, out_queue: out_queue, event_loop: event_loop }
+}
 
+impl<'a, D: Dispatcher> Provider<'a, D> {
     pub fn channel(&self) -> Sender<D::Message> {
         self.event_loop.channel()
     }
     
     pub fn outgoing<F>(&mut self, out: F)
-        where F: FnOnce(Buffer) -> Option<(Buffer, SocketAddr)> {
-        let buffer = self.buffer_pool.pop();
+        where F: FnOnce(&mut Buffer) -> Option<SocketAddr> {
+        let mut buffer = self.buffer_pool.pop();
+        let opt_send_to = out(&mut buffer);
         
-        if let Some(message) = out(buffer) {
-            self.out_queue.push_back(message);
+        match opt_send_to {
+            Some(addr) => self.out_queue.push_back((buffer, addr)),
+            None       => self.buffer_pool.push(buffer)
         }
     }
     

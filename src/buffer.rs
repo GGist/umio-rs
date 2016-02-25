@@ -41,7 +41,7 @@ impl Buffer {
     }
     
     pub fn set_written(&mut self, bytes: usize) {
-        self.bytes_written = 0;
+        self.bytes_written = bytes;
     }
 }
 

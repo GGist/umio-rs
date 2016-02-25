@@ -1,7 +1,7 @@
 use std::io::{Result};
 use std::net::{SocketAddr, SocketAddrV4, Ipv4Addr};
 
-use mio::{EventLoop, Sender, Token, EventSet, PollOpt};
+use mio::{EventLoop, Sender, Token, EventSet, PollOpt, EventLoopConfig};
 use mio::udp::{UdpSocket};
 
 use buffer::{BufferPool};
@@ -34,22 +34,24 @@ impl ELoopBuilder {
         self
     }
     
-    pub fn build<'a, D: Dispatcher>(self) -> Result<ELoop<'a, D>> {
+    pub fn build<D: Dispatcher>(self) -> Result<ELoop<D>> {
         ELoop::from_builder(self)
     }
 }
 
 //----------------------------------------------------------------------------//
 
-pub struct ELoop<'a, D: Dispatcher + 'a> {
+pub struct ELoop<D: Dispatcher> {
     buffer_size: usize,
     socket_addr: SocketAddr,
-    event_loop:  EventLoop<DispatchHandler<'a, D>>
+    event_loop:  EventLoop<DispatchHandler<D>>
 }
 
-impl<'a, D: Dispatcher> ELoop<'a, D> {
-    fn from_builder(builder: ELoopBuilder) -> Result<ELoop<'a, D>> {
-        let event_loop = try!(EventLoop::new());
+impl<D: Dispatcher> ELoop<D> {
+    fn from_builder(builder: ELoopBuilder) -> Result<ELoop<D>> {
+        let mut config = EventLoopConfig::new();
+        
+        let event_loop = try!(EventLoop::configured(config));
         
         Ok(ELoop{ buffer_size: builder.buffer_size, socket_addr: builder.bind_address,
             event_loop: event_loop })
@@ -59,15 +61,10 @@ impl<'a, D: Dispatcher> ELoop<'a, D> {
         self.event_loop.channel()
     }
     
-    pub fn run(&'a mut self, dispatcher: &'a mut D) -> Result<()> {
-        let udp_socket = try!(UdpSocket::v4());
-        udp_socket.bind(&self.socket_addr);
-        
-        // TODO: Refactor
-        self.event_loop.register(&udp_socket, Token(2), EventSet::readable(), PollOpt::oneshot());
-        
-        let mut dispatch_handler = DispatchHandler::new(udp_socket,
-            self.buffer_size, dispatcher);
+    pub fn run(&mut self, dispatcher: D) -> Result<()> {
+        let udp_socket = try!(UdpSocket::bound(&self.socket_addr));
+        let mut dispatch_handler = DispatchHandler::new(udp_socket, self.buffer_size, dispatcher,
+            &mut self.event_loop);
         
         self.event_loop.run(&mut dispatch_handler)
     }
