@@ -1,10 +1,20 @@
 [package]
-name     = "umio"
-version  = "0.1.0"
-authors  = ["GGist <amiller4421@gmail.com>"]
+name          = "umio"
+version       = "0.1.0"
+description   = "Message Based Readiness API In Rust"
+
+authors       = ["Andrew <amiller4421@gmail.com>"]
+
+homepage      = "https://github.com/GGist/bip-rs"
+repository    = "https://github.com/GGist/bip-rs/tree/master/bip_bencode"
+documentation = "http://ggist.github.io/bip-rs/bip_bencode/index.html"
+
+keywords      = ["udp"]
+
+license       = "MIT/Apache-2.0"
 
 [dependencies]
-mio      = "0.5.0"
+mio           = "0.5.0"
 
 [features]
-unstable = []
+unstable      = []
