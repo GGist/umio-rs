@@ -1,7 +1,10 @@
 [package]
-name = "umio"
-version = "0.1.0"
-authors = ["GGist <amiller4421@gmail.com>"]
+name     = "umio"
+version  = "0.1.0"
+authors  = ["GGist <amiller4421@gmail.com>"]
 
 [dependencies]
-mio = "0.5.0"
+mio      = "0.5.0"
+
+[features]
+unstable = []
