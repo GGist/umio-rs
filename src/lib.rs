@@ -1,4 +1,8 @@
-#![allow(dead_code)]
+//! Message Based Readiness API
+//!
+//! This library is a thin wrapper around mio for clients who wish to
+//! use a single udp socket in conjunction with message passing and
+//! timeouts.
 
 extern crate mio;
 
@@ -6,9 +10,10 @@ mod buffer;
 mod dispatcher;
 mod eloop;
 mod provider;
-mod route;
+//mod route;
 
-pub use mio::{Timeout, TimerResult, TimerError, Sender};
+/// Exports of bare mio types.
+pub mod external;
 
 pub use buffer::{Buffer};
 pub use dispatcher::{Dispatcher};

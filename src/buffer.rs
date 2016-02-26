@@ -1,5 +1,3 @@
-use std::io::{Write, Read, Cursor, Result};
-
 pub struct BufferPool {
     // Use Stack For Temporal Locality
     buffers:     Vec<Buffer>,
@@ -26,6 +24,7 @@ impl BufferPool {
 
 //----------------------------------------------------------------------------//
 
+/// Reusable region of memory for incoming and outgoing messages.
 pub struct Buffer {
     buffer:        Vec<u8>,
     bytes_written: usize
@@ -40,6 +39,7 @@ impl Buffer {
         self.set_written(0);
     }
     
+    /// Update the number of bytes written to the buffer.
     pub fn set_written(&mut self, bytes: usize) {
         self.bytes_written = bytes;
     }
