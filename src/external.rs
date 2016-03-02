@@ -1,1 +1,1 @@
-pub use mio::{Timeout, TimerResult, TimerError, Sender};
+pub use mio::{Timeout, TimerResult, TimerError};

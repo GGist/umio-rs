@@ -1,21 +1,45 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+use crossbeam::sync::{MsQueue};
+
 pub struct BufferPool {
-    // Use Stack For Temporal Locality
-    buffers:     Vec<Buffer>,
-    buffer_size: usize
+    buffers:      MsQueue<Buffer>,
+    buffer_size:  usize,
+    max_buffers:  usize,
+    curr_buffers: AtomicUsize
 }
 
 impl BufferPool {
-    pub fn new(buffer_size: usize) -> BufferPool {
-        let buffers = Vec::new();
+    pub fn new(buffer_size: usize, max_buffers: usize) -> BufferPool {
+        BufferPool{ buffers: MsQueue::new(), buffer_size: buffer_size,
+            max_buffers: max_buffers, curr_buffers: AtomicUsize::new(0) }
+    }
+    
+    pub fn pop(&self) -> Buffer {
+        // Try to get a buffer, otherwise see if we can create more.
+        let opt_buffer = self.buffers.try_pop().or_else(|| {
+            let new_num_buffers = self.curr_buffers.fetch_add(1, Ordering::AcqRel);
         
-        BufferPool{ buffers: buffers, buffer_size: buffer_size }
+            // If we see that our new increment is less than or equal to
+            // the max, we are free to create a new buffer and return it.
+            // Otherwise, we should set the curr_buffers back to the max.
+            if new_num_buffers <= self.max_buffers {
+                Some(Buffer::new(self.buffer_size))
+            } else {
+                self.curr_buffers.store(self.max_buffers, Ordering::AcqRel);
+                
+                None
+            }
+        });
+    
+        // Return a buffer now or block until one is available.
+        match opt_buffer {
+            Some(buffer) => buffer,
+            None         => self.buffers.pop()
+        }
     }
     
-    pub fn pop(&mut self) -> Buffer {
-        self.buffers.pop().unwrap_or(Buffer::new(self.buffer_size))
-    }
-    
-    pub fn push(&mut self, mut buffer: Buffer) {
+    pub fn push(&self, mut buffer: Buffer) {
         buffer.reset_position();
         
         self.buffers.push(buffer);

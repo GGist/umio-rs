@@ -4,9 +4,12 @@
 //! use a single udp socket in conjunction with message passing and
 //! timeouts.
 
+extern crate crossbeam;
 extern crate mio;
+extern crate threadpool;
 
 mod buffer;
+mod client;
 mod dispatcher;
 mod eloop;
 mod provider;
@@ -15,7 +18,7 @@ mod provider;
 /// Exports of bare mio types.
 pub mod external;
 
-pub use buffer::{Buffer};
+pub use client::{Sender};
 pub use dispatcher::{Dispatcher};
 pub use eloop::{ELoopBuilder, ELoop};
 pub use provider::{Provider};

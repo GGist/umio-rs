@@ -1,40 +1,53 @@
-use std::collections::{VecDeque};
 use std::net::{SocketAddr};
+use std::sync::{Arc};
 
-use mio::{EventLoop, Sender, TimerResult, Timeout};
+use mio::{EventLoop, TimerResult, Timeout};
+use threadpool::{ThreadPool};
 
-use buffer::{BufferPool, Buffer};
-use dispatcher::{Dispatcher, DispatchHandler};
+use buffer::{BufferPool};
+use client::{self};
+use dispatcher::{Dispatcher, DispatchHandler, DispatchMessage};
 
 /// Provides services to dispatcher clients.
 pub struct Provider<'a, D: Dispatcher + 'a> {
-    buffer_pool: &'a mut BufferPool,
-    out_queue:   &'a mut VecDeque<(Buffer, SocketAddr)>,
+    thread_pool: &'a ThreadPool,
+    buffer_pool: &'a Arc<BufferPool>,
     event_loop:  &'a mut EventLoop<DispatchHandler<D>>
 }
 
-pub fn new<'a, D: Dispatcher>(buffer_pool: &'a mut BufferPool, out_queue: &'a mut VecDeque<(Buffer, SocketAddr)>,
+pub fn new_provider<'a, D: Dispatcher>(thread_pool: &'a ThreadPool, buffer_pool: &'a Arc<BufferPool>,
     event_loop: &'a mut EventLoop<DispatchHandler<D>>) -> Provider<'a, D> {
-    Provider{ buffer_pool: buffer_pool, out_queue: out_queue, event_loop: event_loop }
+    Provider{ thread_pool: thread_pool, buffer_pool: buffer_pool, event_loop: event_loop }   
 }
 
 impl<'a, D: Dispatcher> Provider<'a, D> {
     /// Grab a channel to send messages to the event loop.
-    pub fn channel(&self) -> Sender<D::Message> {
-        self.event_loop.channel()
+    pub fn channel(&self) -> client::Sender<D::Message> {
+        client::new_sender(self.event_loop.channel())
     }
     
-    /// Execute a closure with a buffer and send the buffer contents to the
-    /// destination address or reclaim the buffer and do not send anything.
+    /// Execute the closure in another thread, possibly blocking until a buffer is available.
+    ///
+    /// Sends the buffer with the number of bytes written to the destination address or nothing.
     pub fn outgoing<F>(&mut self, out: F)
-        where F: FnOnce(&mut Buffer) -> Option<SocketAddr> {
-        let mut buffer = self.buffer_pool.pop();
-        let opt_send_to = out(&mut buffer);
+        where F: FnOnce(&mut [u8]) -> Option<(usize, SocketAddr)> + Send + 'static {
+        let out_channel = self.event_loop.channel();
+        let share_pool = self.buffer_pool.clone();
         
-        match opt_send_to {
-            Some(addr) => self.out_queue.push_back((buffer, addr)),
-            None       => self.buffer_pool.push(buffer)
-        }
+        self.thread_pool.execute(move || {
+            let mut buffer = share_pool.pop();
+            
+            match out(buffer.as_mut()) {
+                Some((bytes, addr)) => {
+                    buffer.set_written(bytes);
+                    
+                    out_channel.send(DispatchMessage::DispatchOutgoing(buffer, addr)).unwrap();
+                },
+                None => {
+                    share_pool.push(buffer);
+                }
+            }
+        });
     }
     
     /// Set a timeout with the given delay and token.
