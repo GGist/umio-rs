@@ -14,7 +14,9 @@ keywords      = ["udp"]
 license       = "MIT/Apache-2.0"
 
 [dependencies]
+crossbeam     = "0.2.0"
 mio           = "0.5.0"
+threadpool    = "0.2.0"
 
 [features]
 unstable      = []
