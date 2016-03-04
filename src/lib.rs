@@ -10,12 +10,10 @@ mod buffer;
 mod dispatcher;
 mod eloop;
 mod provider;
-//mod route;
 
 /// Exports of bare mio types.
 pub mod external;
 
-pub use buffer::{Buffer};
 pub use dispatcher::{Dispatcher};
 pub use eloop::{ELoopBuilder, ELoop};
 pub use provider::{Provider};

@@ -1,6 +1,6 @@
 [package]
 name          = "umio"
-version       = "0.1.0"
+version       = "0.2.0"
 description   = "Message Based Readiness API In Rust"
 
 authors       = ["Andrew <amiller4421@gmail.com>"]

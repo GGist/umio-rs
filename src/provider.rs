@@ -27,13 +27,17 @@ impl<'a, D: Dispatcher> Provider<'a, D> {
     /// Execute a closure with a buffer and send the buffer contents to the
     /// destination address or reclaim the buffer and do not send anything.
     pub fn outgoing<F>(&mut self, out: F)
-        where F: FnOnce(&mut Buffer) -> Option<SocketAddr> {
+        where F: FnOnce(&mut [u8]) -> Option<(usize, SocketAddr)> {
         let mut buffer = self.buffer_pool.pop();
-        let opt_send_to = out(&mut buffer);
+        let opt_send_to = out(buffer.as_mut());
         
         match opt_send_to {
-            Some(addr) => self.out_queue.push_back((buffer, addr)),
-            None       => self.buffer_pool.push(buffer)
+            None                => self.buffer_pool.push(buffer),
+            Some((bytes, addr)) => {
+                buffer.set_written(bytes);
+            
+                self.out_queue.push_back((buffer, addr));
+            }
         }
     }
     
