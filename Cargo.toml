@@ -18,3 +18,7 @@ mio           = "0.5.0"
 
 [features]
 unstable      = []
+
+[[test]]
+name = "test"
+path = "test/mod.rs"

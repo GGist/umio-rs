@@ -35,7 +35,8 @@ pub struct DispatchHandler<D: Dispatcher> {
 }
 
 impl<D: Dispatcher> DispatchHandler<D> {
-    pub fn new(udp_socket: UdpSocket, buffer_size: usize, dispatch: D, event_loop: &mut EventLoop<DispatchHandler<D>>) -> DispatchHandler<D> {
+    pub fn new(udp_socket: UdpSocket, buffer_size: usize, dispatch: D, event_loop: &mut EventLoop<DispatchHandler<D>>)
+        -> DispatchHandler<D> {
         let buffer_pool = BufferPool::new(buffer_size);
         let out_queue = VecDeque::new();
         

@@ -56,3 +56,28 @@ impl AsMut<[u8]> for Buffer {
         &mut self.buffer[self.bytes_written..]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{BufferPool, Buffer};
+    
+    const DEFAULT_BUFFER_SIZE: usize = 1500;
+    
+    #[test]
+    fn positive_buffer_pool_buffer_len() {
+        let mut buffers = BufferPool::new(DEFAULT_BUFFER_SIZE);
+        let mut buffer = buffers.pop();
+        
+        assert_eq!(buffer.as_mut().len(), DEFAULT_BUFFER_SIZE);
+        assert_eq!(buffer.as_ref().len(), 0);
+    }
+    
+    #[test]
+    fn positive_buffer_len_update() {
+        let mut buffer = Buffer::new(DEFAULT_BUFFER_SIZE);
+        buffer.set_written(DEFAULT_BUFFER_SIZE - 1);
+        
+        assert_eq!(buffer.as_mut().len(), 1);
+        assert_eq!(buffer.as_ref().len(), DEFAULT_BUFFER_SIZE - 1);
+    }
+}
