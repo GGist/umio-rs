@@ -22,7 +22,7 @@ fn positive_send_notify() {
     
     let token = 5;
     dispatch_send.send(MockMessage::SendTimeout(token, 50)).unwrap();
-    thread::sleep(Duration::from_millis(200));
+    thread::sleep(Duration::from_millis(300));
     
     match dispatch_recv.try_recv() {
         Ok(MockMessage::TimeoutReceived(tkn)) => {
