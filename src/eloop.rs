@@ -1,17 +1,21 @@
 use std::io::{Result};
 use std::net::{SocketAddr, SocketAddrV4, Ipv4Addr};
 
-use mio::{EventLoop, Sender};
+use mio::{EventLoop, Sender, EventLoopConfig};
 use mio::udp::{UdpSocket};
 
 use dispatcher::{Dispatcher, DispatchHandler};
 
-const DEFAULT_BUFFER_SIZE: usize = 1500;
+const DEFAULT_BUFFER_SIZE:      usize = 1500;
+const DEFAULT_CHANNEL_CAPACITY: usize = 4096;
+const DEFAULT_TIMER_CAPACITY:   usize = 65536;
 
 /// Builder for specifying attributes of an event loop.
 pub struct ELoopBuilder {
-    buffer_size:  usize,
-    bind_address: SocketAddr
+    channel_capacity: usize,
+    timer_capacity:   usize,
+    buffer_size:      usize,
+    bind_address:     SocketAddr
 }
 
 impl ELoopBuilder {
@@ -19,7 +23,22 @@ impl ELoopBuilder {
     pub fn new() -> ELoopBuilder {
         let default_addr = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 0));
         
-        ELoopBuilder{ buffer_size: DEFAULT_BUFFER_SIZE, bind_address: default_addr }
+        ELoopBuilder{ channel_capacity: DEFAULT_CHANNEL_CAPACITY, timer_capacity: DEFAULT_TIMER_CAPACITY,
+            buffer_size: DEFAULT_BUFFER_SIZE, bind_address: default_addr }
+    }
+    
+    /// Manually set the maximum channel message capacity.
+    pub fn channel_capacity(mut self, capacity: usize) -> ELoopBuilder {
+        self.channel_capacity = capacity;
+        
+        self
+    }
+    
+    /// Manually set the maximum timer capacity.
+    pub fn timer_capacity(mut self, capacity: usize) -> ELoopBuilder {
+        self.timer_capacity = capacity;
+        
+        self
     }
     
     /// Manually set the bind address for the udp socket in the event loop.
@@ -53,7 +72,11 @@ pub struct ELoop<D: Dispatcher> {
 
 impl<D: Dispatcher> ELoop<D> {
     fn from_builder(builder: ELoopBuilder) -> Result<ELoop<D>> {
-        let event_loop = try!(EventLoop::new());
+        let mut event_loop_config = EventLoopConfig::new();
+        event_loop_config.notify_capacity(builder.channel_capacity)
+            .timer_capacity(builder.timer_capacity);
+        
+        let event_loop = try!(EventLoop::configured(event_loop_config));
         
         Ok(ELoop{ buffer_size: builder.buffer_size, socket_addr: builder.bind_address,
             event_loop: event_loop })
