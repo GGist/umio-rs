@@ -13,12 +13,15 @@ pub trait Dispatcher: Sized {
     type Message: Send;
     
     /// Process an incoming message from the given address.
+    #[allow(unused)]
     fn incoming<'a>(&mut self, provider: Provider<'a, Self>, message: &[u8], addr: SocketAddr) { }
     
     /// Process a message sent via the event loop channel.
+    #[allow(unused)]
     fn notify<'a>(&mut self, provider: Provider<'a, Self>, message: Self::Message) { }
     
     /// Process a timeout that has been triggered.
+    #[allow(unused)]
     fn timeout<'a>(&mut self, provider: Provider<'a, Self>, timeout: Self::Timeout) { }
 }
 
@@ -40,7 +43,7 @@ impl<D: Dispatcher> DispatchHandler<D> {
         let buffer_pool = BufferPool::new(buffer_size);
         let out_queue = VecDeque::new();
         
-        event_loop.register(&udp_socket, UDP_SOCKET_TOKEN, EventSet::readable(), PollOpt::level()).unwrap();
+        event_loop.register(&udp_socket, UDP_SOCKET_TOKEN, EventSet::readable(), PollOpt::edge()).unwrap();
         
         DispatchHandler{ dispatch: dispatch, out_queue: out_queue, udp_socket: udp_socket,
             buffer_pool: buffer_pool, current_set: EventSet::readable() }
@@ -117,6 +120,6 @@ impl<D: Dispatcher> Handler for DispatchHandler<D> {
             EventSet::readable()
         };
         
-        event_loop.reregister(&self.udp_socket, UDP_SOCKET_TOKEN, self.current_set, PollOpt::level()).unwrap();
+        event_loop.reregister(&self.udp_socket, UDP_SOCKET_TOKEN, self.current_set, PollOpt::edge()).unwrap();
     }
 }
