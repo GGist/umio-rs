@@ -13,13 +13,13 @@ pub trait Dispatcher: Sized {
     type Message: Send;
     
     /// Process an incoming message from the given address.
-    fn incoming<'a>(&mut self, _: Provider<'a, Self>, _: &[u8], _: SocketAddr) { }
+    fn incoming<'a>(&mut self, provider: Provider<'a, Self>, message: &[u8], addr: SocketAddr) { }
     
     /// Process a message sent via the event loop channel.
-    fn notify<'a>(&mut self, _: Provider<'a, Self>, _: Self::Message) { }
+    fn notify<'a>(&mut self, provider: Provider<'a, Self>, message: Self::Message) { }
     
     /// Process a timeout that has been triggered.
-    fn timeout<'a>(&mut self, _: Provider<'a, Self>, _: Self::Timeout) { }
+    fn timeout<'a>(&mut self, provider: Provider<'a, Self>, timeout: Self::Timeout) { }
 }
 
 //----------------------------------------------------------------------------//
