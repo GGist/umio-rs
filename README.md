@@ -7,7 +7,7 @@ Thin layer over mio for working with a single udp socket while retaining access 
 Dashboard
 ---------
 | Linux CI | Windows CI | Test Coverage | Crate | Documentation |
-|:--------:|:----------:|:-------------:|:---------:|:-------------:|:-------:|
+|:--------:|:----------:|:-------------:|:---------:|:-------------:|
 | [![Build Status](https://travis-ci.org/GGist/umio-rs.svg?branch=master)](https://travis-ci.org/GGist/umio-rs) | [![Build status](https://ci.appveyor.com/api/projects/status/bh1px3ry0f7qyw5b/branch/master?svg=true)](https://ci.appveyor.com/project/GGist/umio-rs/branch/master) | [![Coverage Status](https://coveralls.io/repos/GGist/umio-rs/badge.svg?branch=master)](https://coveralls.io/r/GGist/umio-rs?branch=master) | [![Crate](http://meritbadge.herokuapp.com/umio)](https://crates.io/crates/umio) | [![Docs](https://img.shields.io/badge/docs-up--to--date-blue.svg)](http://ggist.github.io/umio-rs/index.html)
 
 License
