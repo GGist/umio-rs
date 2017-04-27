@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["external","Exports of bare mio types."]],"struct":[["ELoop","Wrapper around the main application event loop."],["ELoopBuilder","Builder for specifying attributes of an event loop."],["Provider","Provides services to dispatcher clients."]],"trait":[["Dispatcher","Handles events occurring within the event loop."]]});

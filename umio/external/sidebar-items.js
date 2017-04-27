@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Sender","Sends messages to the EventLoop from other threads."],["Timeout",""],["TimerError",""]],"type":[["TimerResult",""]]});

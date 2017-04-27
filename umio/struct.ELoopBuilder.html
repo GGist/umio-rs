@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `ELoopBuilder` struct in crate `umio`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, ELoopBuilder">
+
+    <title>umio::ELoopBuilder - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct ELoopBuilder</p><div class="block items"><ul><li><a href="#methods">Methods</a></li></ul></div><p class='location'><a href='index.html'>umio</a></p><script>window.sidebarCurrent = {name: 'ELoopBuilder', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>umio</a>::<wbr><a class="struct" href=''>ELoopBuilder</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/umio/eloop.rs.html#14-19' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct ELoopBuilder { /* fields omitted */ }</pre><div class='docblock'><p>Builder for specifying attributes of an event loop.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class="struct" href="../umio/struct.ELoopBuilder.html" title="struct umio::ELoopBuilder">ELoopBuilder</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/umio/eloop.rs.html#21-62' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class="method"><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class="struct" href="../umio/struct.ELoopBuilder.html" title="struct umio::ELoopBuilder">ELoopBuilder</a></code></span></h4>
+<div class='docblock'><p>Create a new event loop builder.</p>
+</div><h4 id='method.channel_capacity' class="method"><span id='channel_capacity.v' class='invisible'><code>fn <a href='#method.channel_capacity' class='fnname'>channel_capacity</a>(self, capacity: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="../umio/struct.ELoopBuilder.html" title="struct umio::ELoopBuilder">ELoopBuilder</a></code></span></h4>
+<div class='docblock'><p>Manually set the maximum channel message capacity.</p>
+</div><h4 id='method.timer_capacity' class="method"><span id='timer_capacity.v' class='invisible'><code>fn <a href='#method.timer_capacity' class='fnname'>timer_capacity</a>(self, capacity: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="../umio/struct.ELoopBuilder.html" title="struct umio::ELoopBuilder">ELoopBuilder</a></code></span></h4>
+<div class='docblock'><p>Manually set the maximum timer capacity.</p>
+</div><h4 id='method.bind_address' class="method"><span id='bind_address.v' class='invisible'><code>fn <a href='#method.bind_address' class='fnname'>bind_address</a>(self, address: <a class="enum" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html" title="enum std::net::addr::SocketAddr">SocketAddr</a>) -&gt; <a class="struct" href="../umio/struct.ELoopBuilder.html" title="struct umio::ELoopBuilder">ELoopBuilder</a></code></span></h4>
+<div class='docblock'><p>Manually set the bind address for the udp socket in the event loop.</p>
+</div><h4 id='method.buffer_length' class="method"><span id='buffer_length.v' class='invisible'><code>fn <a href='#method.buffer_length' class='fnname'>buffer_length</a>(self, length: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="../umio/struct.ELoopBuilder.html" title="struct umio::ELoopBuilder">ELoopBuilder</a></code></span></h4>
+<div class='docblock'><p>Manually set the length of buffers provided by the event loop.</p>
+</div><h4 id='method.build' class="method"><span id='build.v' class='invisible'><code>fn <a href='#method.build' class='fnname'>build</a>&lt;D:&nbsp;<a class="trait" href="../umio/trait.Dispatcher.html" title="trait umio::Dispatcher">Dispatcher</a>&gt;(self) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;<a class="struct" href="../umio/struct.ELoop.html" title="struct umio::ELoop">ELoop</a>&lt;D&gt;&gt;</code></span></h4>
+<div class='docblock'><p>Build the event loop with the current builder.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "umio";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
